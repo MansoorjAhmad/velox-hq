@@ -170,7 +170,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             {/* Command palette trigger */}
             <button
-              onClick={() => toast.info("Command palette coming in Stage 1")}
+              onClick={() => setCommandOpen(true)}
               className="hidden md:flex items-center gap-2 rounded-radius-md border border-border-default bg-bg-page px-3 py-1.5 text-sm text-text-muted hover:text-text-secondary transition-colors"
             >
               <IconSearch className="h-4 w-4" strokeWidth={1.5} />
