@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   CommandDialog,
@@ -36,23 +36,27 @@ const navigateItems = [
   { label: "Settings", to: "/settings", icon: IconSettings },
 ];
 
-export function CommandPalette() {
-  const [open, setOpen] = useState(false);
+interface CommandPaletteProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const navigate = useNavigate();
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setOpen((prev) => !prev);
+        onOpenChange(!open);
       }
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [open, onOpenChange]);
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
+    <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput placeholder="Type a command or search…" />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
@@ -61,7 +65,7 @@ export function CommandPalette() {
             <CommandItem
               key={item.to}
               onSelect={() => {
-                setOpen(false);
+                onOpenChange(false);
                 navigate({ to: item.to });
               }}
             >
@@ -74,7 +78,7 @@ export function CommandPalette() {
         <CommandGroup heading="Quick actions">
           <CommandItem
             onSelect={() => {
-              setOpen(false);
+              onOpenChange(false);
               navigate({ to: "/journal" });
             }}
           >
