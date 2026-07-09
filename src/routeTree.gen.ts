@@ -21,6 +21,7 @@ import { Route as AuthenticatedIncomeRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated.goals'
 import { Route as AuthenticatedDebtRouteImport } from './routes/_authenticated.debt'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthenticatedComponentShowcaseRouteImport } from './routes/_authenticated.component-showcase'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated.coach'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated.analytics'
 import { Route as AuthenticatedSettingsDataRouteImport } from './routes/_authenticated.settings.data'
@@ -87,6 +88,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedComponentShowcaseRoute =
+  AuthenticatedComponentShowcaseRouteImport.update({
+    id: '/component-showcase',
+    path: '/component-showcase',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCoachRoute = AuthenticatedCoachRouteImport.update({
   id: '/coach',
   path: '/coach',
@@ -116,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/coach': typeof AuthenticatedCoachRoute
+  '/component-showcase': typeof AuthenticatedComponentShowcaseRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/debt': typeof AuthenticatedDebtRoute
   '/goals': typeof AuthenticatedGoalsRoute
@@ -133,6 +141,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/coach': typeof AuthenticatedCoachRoute
+  '/component-showcase': typeof AuthenticatedComponentShowcaseRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/debt': typeof AuthenticatedDebtRoute
   '/goals': typeof AuthenticatedGoalsRoute
@@ -152,6 +161,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
+  '/_authenticated/component-showcase': typeof AuthenticatedComponentShowcaseRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/debt': typeof AuthenticatedDebtRoute
   '/_authenticated/goals': typeof AuthenticatedGoalsRoute
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/analytics'
     | '/coach'
+    | '/component-showcase'
     | '/dashboard'
     | '/debt'
     | '/goals'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/analytics'
     | '/coach'
+    | '/component-showcase'
     | '/dashboard'
     | '/debt'
     | '/goals'
@@ -206,6 +218,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/analytics'
     | '/_authenticated/coach'
+    | '/_authenticated/component-showcase'
     | '/_authenticated/dashboard'
     | '/_authenticated/debt'
     | '/_authenticated/goals'
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/component-showcase': {
+      id: '/_authenticated/component-showcase'
+      path: '/component-showcase'
+      fullPath: '/component-showcase'
+      preLoaderRoute: typeof AuthenticatedComponentShowcaseRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/coach': {
       id: '/_authenticated/coach'
       path: '/coach'
@@ -360,6 +380,7 @@ const AuthenticatedSettingsRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
+  AuthenticatedComponentShowcaseRoute: typeof AuthenticatedComponentShowcaseRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDebtRoute: typeof AuthenticatedDebtRoute
   AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRoute
@@ -373,6 +394,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
+  AuthenticatedComponentShowcaseRoute: AuthenticatedComponentShowcaseRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDebtRoute: AuthenticatedDebtRoute,
   AuthenticatedGoalsRoute: AuthenticatedGoalsRoute,
@@ -396,3 +418,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
