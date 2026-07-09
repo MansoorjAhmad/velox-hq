@@ -249,6 +249,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </>
       )}
 
+      <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
+
       {/* Mobile bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 flex h-14 items-center justify-around border-t border-border-subtle bg-bg-surface md:hidden">
         {[
