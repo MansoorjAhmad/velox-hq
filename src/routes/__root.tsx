@@ -86,6 +86,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Personal trading command center" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Velox HQ" },
+      { name: "twitter:description", content: "Personal trading command center" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4f1123e5-a56f-401f-b35b-faedaf515c23/id-preview-64c0d832--8c64a51f-5de2-4991-887f-89c3295673ee.lovable.app-1783867096407.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4f1123e5-a56f-401f-b35b-faedaf515c23/id-preview-64c0d832--8c64a51f-5de2-4991-887f-89c3295673ee.lovable.app-1783867096407.png" },
     ],
     links: [
       {
