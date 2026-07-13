@@ -71,19 +71,20 @@ export const sendCoachMessage = createServerFn({ method: "POST" })
       ...(history ?? []).map((m) => ({ role: m.role, content: m.content })),
     ];
 
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     let reply = "The coach is unavailable right now. Try again shortly.";
     if (apiKey) {
       try {
-        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
           headers: {
             "content-type": "application/json",
             authorization: `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: "llama-3.3-70b-versatile",
             messages,
+            temperature: 0.7,
           }),
         });
         if (res.ok) {
@@ -91,12 +92,16 @@ export const sendCoachMessage = createServerFn({ method: "POST" })
           reply = json?.choices?.[0]?.message?.content?.trim() || reply;
         } else if (res.status === 429) {
           reply = "Rate limit reached. Give it a moment and try again.";
-        } else if (res.status === 402) {
-          reply = "AI credits exhausted. Top up in the workspace to continue.";
+        } else if (res.status === 401) {
+          reply = "Groq API key invalid. Update GROQ_API_KEY in settings.";
+        } else {
+          reply = `Coach error (${res.status}). Try again shortly.`;
         }
       } catch (e) {
         reply = "Couldn't reach the coach. Check your connection and retry.";
       }
+    } else {
+      reply = "GROQ_API_KEY is not configured yet. Add it in Settings → Secrets.";
     }
 
     const { data: aRow, error: aErr } = await supabase
