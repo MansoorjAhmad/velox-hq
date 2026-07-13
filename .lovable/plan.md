@@ -1,93 +1,147 @@
-## Stage 1 — Foundation
+# Velox HQ v1.1 — Design Refresh + Feature Upgrade
 
-### What we're building
-The entire foundation for Velox HQ: dark-themed design system, self-hosted fonts, 18 base components, Lovable Cloud auth, app shell (sidebar + topbar + command palette), all 9 database tables with RLS, and the protected route structure. Everything in later stages depends on this being rock-solid.
+Two tracks executed together: a full visual/interaction refresh so the app stops feeling like a stock dashboard, plus the highest-leverage features that make Velox HQ genuinely next-level.
 
-### 1. Packages & Assets
-- Install: `framer-motion`, `@tabler/icons-react`, `@fontsource-variable/inter`
-- Geist Mono: self-hosted via `@font-face` using the `geist` npm package font files (or a CDN fallback if unavailable, then cached locally)
-- No Google Fonts CDN dependency per blueprint §4.2
+---
 
-### 2. Design System (src/styles.css)
-- Replace current Tailwind theme with blueprint §4.1 tokens (dark-only: `--bg-page`, `--bg-surface`, `--bg-surface-raised`, `--accent-primary`, semantic colors for success/danger/warning/info, shadows, radii, spacing scale)
-- Wire tokens into `@theme inline` so Tailwind utilities work (`bg-page`, `text-primary`, `border-subtle`, etc.)
-- Typography scale §4.2: Inter for UI text, Geist Mono for numbers with `tabular-nums`
-- No light mode — dark theme only
+## Track A — UI/UX Overhaul
 
-### 3. Database Schema (migration)
-Create all 9 tables from blueprint §5, in order, each with GRANT + RLS:
-1. `trading_accounts`
-2. `trades`
-3. `income_entries`
-4. `debts`
-5. `debt_payments`
-6. `goals`
-7. `journal_entries`
-8. `notifications`
-9. `coach_messages`
+Current state: functional but generic. Flat cards, uniform density, no personality, no motion, no visual hierarchy between "hero moment" screens (Dashboard, Analytics) and "utility" screens (Settings, Debt table).
 
-Each table: `GRANT SELECT, INSERT, UPDATE, DELETE TO authenticated; GRANT ALL TO service_role;` then `ENABLE RLS` then `owner_all` policy.
+### A1. Design language reset
+- Pick a distinctive direction (I'll present 3 rendered directions to choose from — a "trader terminal / financial noir" register, an "editorial finance magazine" register, and a "premium coach / calm mastery" register).
+- Lock the winning palette, type pair, and layout as design tokens in `src/styles.css`. Kill all remaining raw color utilities.
+- Introduce a real accent + accent-glow system for gradients, glows, and focus rings.
 
-Storage: create private `trade-screenshots` bucket (no public access), RLS policy scoped to `auth.uid()::text = foldername(name)[1]`.
+### A2. Hierarchy & density
+- Dashboard: promote to a real hero — oversized net-worth number, animated delta, sparkline behind the hero metric, secondary KPI row.
+- Analytics: split into an "at-a-glance" strip and a "deep-dive" grid instead of one flat wall of cards.
+- Tables (Debt, Income, Journal): compact zebra rows, sticky totals footer, inline row actions on hover instead of a cluttered actions column.
 
-### 4. Base Component Library (src/components/)
-Build once, reuse forever. All styled with design tokens, no hardcoded colors:
-- `Button`, `IconButton`, `Input`, `Select`, `Textarea`, `DatePicker`, `Tabs`, `Tooltip`
-- `MetricCard` (label + mono value + delta pill + optional sparkline)
-- `DataTable` (sticky header, sort, row hover, infinite scroll, empty state, skeleton)
-- `ProgressBar` (segmented, 8px/12px variants, animated fill)
-- `StatusBadge` (pill variants: success, danger, warning, info, neutral)
-- `Drawer` (480px desktop, full-screen mobile, backdrop + Esc dismiss)
-- `EmptyState` (contextual icon + headline + description + CTA)
-- `Skeleton` (shimmer, exact dimensions match real content)
-- `CommandPalette` (cmdk-based, Navigate + Quick Actions sections, fuzzy search)
-- `Toast` (sonner-based, bottom-right, success/error/info variants)
+### A3. Motion & feedback
+- Number counters (Framer Motion) on KPI cards.
+- Smooth chart mount transitions (recharts + reduced-motion respect).
+- Toast → inline optimistic UI on trade/income/debt saves.
+- Route transitions (fade + subtle slide) via a root-level layout wrapper.
 
-### 5. Auth Pages
-- `/auth` — combined login/signup toggle, email + password, inline zod validation, loading states, error toasts
-- `/reset-password` — password reset flow (checks `type=recovery` in URL hash)
-- Redirect authenticated users away from auth pages to `/dashboard`
-- Single-user personal tool — no custom restriction logic needed beyond standard auth
+### A4. Navigation
+- Redesigned sidebar: grouped (Trade / Money / Growth / System), collapsible, active-route indicator with an accent bar, keyboard shortcuts hint per row.
+- ⌘K command palette upgrade: quick-log actions (log trade, add income, mark debt payment), jump-to-route, run coach prompt.
 
-### 6. App Shell
-- TopBar: 56px, page title, cmdk trigger (fake input), notification bell, avatar
-- Sidebar: 240px persistent desktop, collapsible to 64px icon rail. Active state: purple wash + left border. All nav items from §3.1. Pages 2-12 render as placeholders.
-- Mobile (<768px): bottom tab bar (Dashboard, Journal, Debt, Income, Coach) + "More" sheet
-- Content area: max-width 1400px, 32px desktop / 16px mobile padding
+### A5. Empty & loading states
+- Every list/page gets a custom illustrated empty state with a primary CTA (not just "no data").
+- Skeleton loaders that match the final layout, not generic gray blocks.
 
-### 7. Route Structure
+### A6. Mobile
+- App-shell becomes a bottom-tab bar under 768px.
+- Drawers replace side sheets on small screens.
+- All header rows fixed with `grid-cols-[minmax(0,1fr)_auto]` + `min-w-0` + `truncate` so nothing clips.
+
+### A7. Micro-polish
+- Focus-visible rings across all interactives.
+- Consistent 44px min tap targets.
+- `h-dvh` everywhere instead of `h-screen`.
+- Gradient/glow only on hero KPIs and CTAs — everywhere else stays quiet.
+
+---
+
+## Track B — v1.1 Features
+
+Priority-ordered. Anything unchecked stays for v1.2.
+
+### B1. Streaming coach (Groq SSE)
+Replace the current request/response coach with token streaming. Groq is fast enough that this feels instant. Adds a "stop generating" button.
+
+### B2. Weekly auto-review
+Sunday cron (`/api/public/cron/weekly-review`) — coach analyzes the week's trades + reflections and drops a graded report into Notifications with a link to the full review page.
+
+### B3. Rule engine
+User defines rules (max daily loss, min RR, no trades after N losses, no revenge trading window). On trade save, run rules → flag violations → surface on the trade row and in Analytics' "Rule Violations" KPI (currently hardcoded).
+
+### B4. Debt payoff simulator
+New `/debt/simulator` page. Snowball vs avalanche side-by-side, projected payoff dates, "what if I add $X/mo from trading profits" slider, interest saved chart.
+
+### B5. Net-worth timeline
+Nightly snapshot of net worth (accounts − debts + reinvest). Chart on Dashboard with goal-deadline projection lines. New `net_worth_snapshots` table.
+
+### B6. Trade screenshot vision (Groq multimodal or fallback)
+Upload chart image on trade form → Groq LLaMA 3.2 Vision extracts pair, entry, direction, timeframe. Pre-fills the form.
+
+### B7. Broker CSV import
+`/journal/import` — paste or upload CSV from MT4/MT5/TradingView/cTrader. Column-mapping wizard, dedupe on external_id, preview → confirm.
+
+### B8. Tag system
+Free-form tags on trades/goals/reflections. New "breakdown by tag" chart on Analytics. Tag chip picker with autocomplete.
+
+### B9. PWA + push
+Manifest + service worker so users can install to homescreen. Web-push for goal milestones, rule violations, weekly reviews.
+
+### B10. Milestone share cards
+Server-generated OG image on `/share/[milestoneId]` — dark card with the achievement (e.g. "Paid off $12,400"). Copy-link + tweet-intent.
+
+---
+
+## Technical Details
+
+### New tables (Supabase migration)
+- `rules` (user_id, name, kind, params jsonb, active) + `rule_violations` (trade_id, rule_id, message)
+- `net_worth_snapshots` (user_id, captured_at, net_worth, total_assets, total_debt)
+- `weekly_reviews` (user_id, week_start, grade, summary, metrics jsonb)
+- `tags` + `taggables` (polymorphic: trade/goal/reflection)
+- `broker_imports` (user_id, source, status, row_count)
+Each with GRANTs + RLS + `auth.uid()`-scoped policies.
+
+### Server functions
+- `src/lib/rules.functions.ts` — CRUD + `evaluateTrade`
+- `src/lib/simulator.functions.ts` — pure math, no DB
+- `src/lib/net-worth.functions.ts` — snapshot + range read
+- `src/lib/weekly-review.functions.ts` — invoked by cron
+- `src/lib/import.functions.ts` — parse + dry-run + commit
+- Streaming route: `src/routes/api/coach.stream.ts` (server route, Groq SSE passthrough)
+- Cron route: `src/routes/api/public/cron/weekly-review.ts` (HMAC-verified)
+
+### Coach streaming
+Move Groq call out of `sendCoachMessage` into a server route that returns a `ReadableStream`. Client uses `EventSource`/`fetch` + reader. Persist final message after stream completes.
+
+### Design tokens
+Extend `src/styles.css` `@theme` with `--accent-glow`, `--gradient-hero`, `--shadow-hero`, `--surface-elevated`, motion timing vars.
+
+### File layout
 ```
-/auth                         (public)
-/reset-password               (public)
-/_authenticated/
-  /dashboard                  (placeholder → Stage 2)
-  /journal                    (placeholder → Stage 3)
-  /debt                       (placeholder → Stage 4)
-  /income                     (placeholder → Stage 5)
-  /analytics                  (placeholder → Stage 6)
-  /goals                      (placeholder → Stage 7)
-  /reflections                (placeholder → Stage 8)
-  /coach                      (placeholder → Stage 10)
-  /notifications             (placeholder → Stage 9)
-  /settings                   (placeholder → Stage 11)
-  /settings/accounts          (placeholder → Stage 11)
-  /settings/data              (placeholder → Stage 11)
+src/
+  components/
+    hero-metric.tsx            (new)
+    kpi-strip.tsx              (new)
+    empty-state.tsx            (new)
+    bottom-tab-bar.tsx         (new)
+    route-transition.tsx       (new)
+  routes/
+    _authenticated.debt.simulator.tsx        (new)
+    _authenticated.journal.import.tsx        (new)
+    _authenticated.review.$week.tsx          (new)
+    api/coach.stream.ts                      (new server route)
+    api/public/cron/weekly-review.ts         (new server route)
+  lib/
+    rules.functions.ts, simulator.functions.ts,
+    net-worth.functions.ts, weekly-review.functions.ts,
+    import.functions.ts, tags.functions.ts   (new)
 ```
 
-### 8. Data Layer
-- React Query provider in `__root.tsx` (already present, keep it)
-- Create query hook pattern: `useTrades`, `useIncome`, etc. as stubs to be filled in later stages
-- Supabase client from `@/integrations/supabase/client` for browser queries
-- Server functions in `src/lib/*.functions.ts` for protected data fetching
-- `requireSupabaseAuth` middleware already wired in `src/start.ts`
+### Secrets needed
+- `CRON_SECRET` (generated) — HMAC for weekly-review cron
+- `GROQ_API_KEY` (already set)
 
-### 9. Head Metadata
-Update `src/routes/__root.tsx` head: title → "Velox HQ", description → "Personal trading command center", og/twitter tags. No placeholder "Lovable App" text anywhere.
+---
 
-### Acceptance Criteria
-- [ ] Can sign up, log out, log back in via email/password
-- [ ] Every base component renders correctly in a temporary `/component-showcase` route
-- [ ] Sidebar nav + command palette both navigate to all placeholder pages
-- [ ] No console errors/warnings on any page
-- [ ] All 9 database tables exist with RLS and correct grants
-- [ ] `trade-screenshots` bucket is private with owner-scoped RLS
+## Execution Order
+
+1. **Design directions** — I render 3 options, you pick one. (Track A1)
+2. **Token + shell refresh** — apply chosen direction, redo sidebar, mobile bottom tabs, motion primitives. (A1–A4, A6)
+3. **Screen-by-screen polish** — Dashboard hero → Analytics → tables → empty/loading states. (A2, A5, A7)
+4. **Streaming coach** — visible win, low risk. (B1)
+5. **Rule engine + net-worth timeline** — highest daily-value features. (B3, B5)
+6. **Debt simulator + weekly review** — the "wow" additions. (B4, B2)
+7. **Import + vision + tags** — power-user layer. (B6, B7, B8)
+8. **PWA + share cards** — distribution layer. (B9, B10)
+
+Approve this and I'll start with step 1 (design directions).
