@@ -73,11 +73,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       >
         {/* Logo */}
         <div className="flex h-14 items-center gap-3 px-4 border-b border-border-subtle">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-radius-md bg-accent-primary text-text-primary font-bold text-sm">
-            V
+          <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-primary text-text-primary font-bold text-sm shadow-[0_0_20px_rgba(83,74,183,0.35)]">
+            <div className="h-3 w-3 rotate-45 border-2 border-text-primary" />
           </div>
           {!collapsed && (
-            <span className="text-h3 text-text-primary truncate">Velox HQ</span>
+            <span className="text-h3 truncate font-bold tracking-tight">
+              VELOX <span className="text-accent-primary-light">HQ</span>
+            </span>
           )}
         </div>
 

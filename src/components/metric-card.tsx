@@ -1,40 +1,76 @@
 import { IconArrowUpRight, IconArrowDownRight, IconMinus } from "@tabler/icons-react";
+import { AnimatedNumber } from "@/components/animated-number";
 import { cn } from "@/lib/utils";
 
 export interface MetricCardProps {
   label: string;
-  value: string;
+  /** String display or numeric value for animated count-up (pair with `format`). */
+  value?: string | number;
+  format?: (n: number) => string;
   delta?: {
-    value: number; // percent, sign-included
-    label?: string; // e.g. "vs prev 30d"
-    /** For inversions like debt where a decrease is good. */
+    value: number;
+    label?: string;
     invertColor?: boolean;
   };
   icon?: React.ReactNode;
   loading?: boolean;
+  tone?: "default" | "success" | "danger";
+  progress?: number;
 }
 
-export function MetricCard({ label, value, delta, icon, loading }: MetricCardProps) {
+export function MetricCard({
+  label,
+  value,
+  format,
+  delta,
+  icon,
+  loading,
+  tone = "default",
+  progress,
+}: MetricCardProps) {
   const deltaTone = (() => {
-    if (!delta) return "neutral";
-    const positive = delta.value > 0;
-    const negative = delta.value < 0;
-    if (!positive && !negative) return "neutral";
-    const good = delta.invertColor ? negative : positive;
+    if (!delta) return "neutral" as const;
+    if (delta.value === 0) return "neutral" as const;
+    const good = delta.invertColor ? delta.value < 0 : delta.value > 0;
     return good ? "success" : "danger";
   })();
 
   return (
-    <div className="group relative flex flex-col gap-4 rounded-lg border border-border-subtle bg-bg-surface p-5 transition-colors hover:bg-bg-surface-hover">
+    <div className="group relative flex flex-col gap-3 rounded-xl border border-border-subtle bg-bg-surface p-5 transition-all hover:bg-bg-surface-hover hover:border-border-default">
       <div className="flex items-center justify-between">
         <span className="text-micro text-text-muted">{label}</span>
         {icon && <span className="text-text-muted">{icon}</span>}
       </div>
 
       {loading ? (
-        <div className="h-8 w-32 animate-pulse rounded bg-bg-surface-raised" />
+        <div className="h-7 w-28 animate-pulse rounded bg-bg-surface-raised" />
       ) : (
-        <div className="text-metric-lg text-text-primary">{value}</div>
+        <div
+          className={cn(
+            "text-2xl font-medium tabular-nums font-mono tracking-tight",
+            tone === "success" && "text-success-strong",
+            tone === "danger" && "text-danger-strong",
+            tone === "default" && "text-text-primary",
+          )}
+        >
+          {typeof value === "number" && format ? (
+            <AnimatedNumber value={value} format={format} />
+          ) : (
+            (value as string | undefined) ?? "—"
+          )}
+        </div>
+      )}
+
+      {typeof progress === "number" && !loading && (
+        <div className="h-1 w-full overflow-hidden rounded-full bg-bg-surface-raised">
+          <div
+            className={cn(
+              "h-full rounded-full transition-all",
+              tone === "danger" ? "bg-danger" : tone === "success" ? "bg-success" : "bg-accent-primary",
+            )}
+            style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
+          />
+        </div>
       )}
 
       {delta && !loading && (
