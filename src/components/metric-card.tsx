@@ -4,11 +4,9 @@ import { cn } from "@/lib/utils";
 
 export interface MetricCardProps {
   label: string;
-  /** Numeric value used for animated count-up. Pass value + format for animation. */
-  value?: number;
+  /** String display or numeric value for animated count-up (pair with `format`). */
+  value?: string | number;
   format?: (n: number) => string;
-  /** Fallback when value/format not supplied. */
-  displayValue?: string;
   delta?: {
     value: number;
     label?: string;
@@ -16,9 +14,7 @@ export interface MetricCardProps {
   };
   icon?: React.ReactNode;
   loading?: boolean;
-  /** Optional emphasis tone applied to the metric number itself. */
   tone?: "default" | "success" | "danger";
-  /** Optional progress fill 0-100 shown as a hairline bar below the metric. */
   progress?: number;
 }
 
@@ -26,7 +22,6 @@ export function MetricCard({
   label,
   value,
   format,
-  displayValue,
   delta,
   icon,
   loading,
@@ -58,10 +53,10 @@ export function MetricCard({
             tone === "default" && "text-text-primary",
           )}
         >
-          {value !== undefined && format ? (
+          {typeof value === "number" && format ? (
             <AnimatedNumber value={value} format={format} />
           ) : (
-            displayValue ?? "—"
+            (value as string | undefined) ?? "—"
           )}
         </div>
       )}
