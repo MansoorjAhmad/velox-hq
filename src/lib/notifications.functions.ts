@@ -28,12 +28,12 @@ export const listNotifications = createServerFn({ method: "GET" })
 
 export const markNotificationRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; is_read: boolean }) => data)
+  .inputValidator((data: { id: string; read: boolean }) => data)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { error } = await supabase
       .from("notifications")
-      .update({ is_read: data.is_read })
+      .update({ read: data.read })
       .eq("user_id", userId)
       .eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -46,9 +46,9 @@ export const markAllNotificationsRead = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { error } = await supabase
       .from("notifications")
-      .update({ is_read: true })
+      .update({ read: true })
       .eq("user_id", userId)
-      .eq("is_read", false);
+      .eq("read", false);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

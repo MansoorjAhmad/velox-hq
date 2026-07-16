@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  listJournal, createJournal, deleteJournal, type JournalRow,
-} from "@/lib/journal.functions";
+  listReflections, createReflection, deleteReflection, type ReflectionRow,
+} from "@/lib/reflections.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/reflections")({
@@ -30,31 +30,38 @@ const MOODS = [
 ];
 
 function ReflectionsPage() {
-  const fetch = useServerFn(listJournal);
-  const create = useServerFn(createJournal);
-  const del = useServerFn(deleteJournal);
+  const fetch = useServerFn(listReflections);
+  const create = useServerFn(createReflection);
+  const del = useServerFn(deleteReflection);
   const qc = useQueryClient();
 
+  const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [mood, setMood] = useState("neutral");
+  const [category, setCategory] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 
-  const q = useQuery({ queryKey: ["journal"], queryFn: () => fetch() });
+  const q = useQuery({ queryKey: ["reflections"], queryFn: () => fetch() });
 
   const addMut = useMutation({
-    mutationFn: () => create({ data: { entry_date: date, content, mood } }),
+    mutationFn: () => create({
+      title: title || "Untitled Reflection",
+      content,
+      reflection_date: date,
+      category: category || null,
+    }),
     onSuccess: () => {
       toast.success("Reflection saved");
+      setTitle("");
       setContent("");
-      setMood("neutral");
-      qc.invalidateQueries({ queryKey: ["journal"] });
+      setCategory("");
+      qc.invalidateQueries({ queryKey: ["reflections"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const delMut = useMutation({
-    mutationFn: (id: string) => del({ data: { id } }),
-    onSuccess: () => { toast.success("Deleted"); qc.invalidateQueries({ queryKey: ["journal"] }); },
+    mutationFn: (id: string) => del({ id }),
+    onSuccess: () => { toast.success("Deleted"); qc.invalidateQueries({ queryKey: ["reflections"] }); },
   });
 
   const entries = q.data ?? [];

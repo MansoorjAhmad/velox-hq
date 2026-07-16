@@ -13,6 +13,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTradesRouteImport } from './routes/_authenticated.trades'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
 import { Route as AuthenticatedReflectionsRouteImport } from './routes/_authenticated.reflections'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
@@ -46,6 +47,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedTradesRoute = AuthenticatedTradesRouteImport.update({
+  id: '/trades',
+  path: '/trades',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/reflections': typeof AuthenticatedReflectionsRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
+  '/trades': typeof AuthenticatedTradesRoute
   '/settings/accounts': typeof AuthenticatedSettingsAccountsRoute
   '/settings/data': typeof AuthenticatedSettingsDataRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/journal': typeof AuthenticatedJournalRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/reflections': typeof AuthenticatedReflectionsRoute
+  '/trades': typeof AuthenticatedTradesRoute
   '/settings/accounts': typeof AuthenticatedSettingsAccountsRoute
   '/settings/data': typeof AuthenticatedSettingsDataRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/reflections': typeof AuthenticatedReflectionsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
+  '/_authenticated/trades': typeof AuthenticatedTradesRoute
   '/_authenticated/settings/accounts': typeof AuthenticatedSettingsAccountsRoute
   '/_authenticated/settings/data': typeof AuthenticatedSettingsDataRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/reflections'
     | '/settings'
+    | '/trades'
     | '/settings/accounts'
     | '/settings/data'
     | '/settings/'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/notifications'
     | '/reflections'
+    | '/trades'
     | '/settings/accounts'
     | '/settings/data'
     | '/settings'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notifications'
     | '/_authenticated/reflections'
     | '/_authenticated/settings'
+    | '/_authenticated/trades'
     | '/_authenticated/settings/accounts'
     | '/_authenticated/settings/data'
     | '/_authenticated/settings/'
@@ -278,6 +290,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/trades': {
+      id: '/_authenticated/trades'
+      path: '/trades'
+      fullPath: '/trades'
+      preLoaderRoute: typeof AuthenticatedTradesRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
@@ -409,6 +428,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedReflectionsRoute: typeof AuthenticatedReflectionsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
+  AuthenticatedTradesRoute: typeof AuthenticatedTradesRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -423,6 +443,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedReflectionsRoute: AuthenticatedReflectionsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
+  AuthenticatedTradesRoute: AuthenticatedTradesRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
