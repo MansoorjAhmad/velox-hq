@@ -25,8 +25,7 @@ export const listCoachMessages = createServerFn({ method: "GET" })
       .from("coach_messages")
       .select("*")
       .eq("user_id", userId)
-      .order("created_at", { ascending: true })
-      .limit(200);
+      .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
     return (data ?? []) as CoachMessage[];
   });
@@ -58,13 +57,12 @@ export const sendCoachMessage = createServerFn({ method: "POST" })
       .single();
     if (uErr) throw new Error(uErr.message);
 
-    // Load recent history
+    // Load all history
     const { data: history } = await supabase
       .from("coach_messages")
       .select("role, content")
       .eq("user_id", userId)
-      .order("created_at", { ascending: true })
-      .limit(30);
+      .order("created_at", { ascending: true });
 
     const messages = [
       { role: "system", content: SYSTEM_PROMPT },
@@ -90,8 +88,6 @@ export const sendCoachMessage = createServerFn({ method: "POST" })
         if (res.ok) {
           const json: any = await res.json();
           reply = json?.choices?.[0]?.message?.content?.trim() || reply;
-        } else if (res.status === 429) {
-          reply = "Rate limit reached. Give it a moment and try again.";
         } else if (res.status === 401) {
           reply = "Groq API key invalid. Update GROQ_API_KEY in settings.";
         } else {
