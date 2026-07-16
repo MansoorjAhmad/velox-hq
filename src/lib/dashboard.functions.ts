@@ -40,7 +40,7 @@ export const getDashboardMetrics = createServerFn({ method: "GET" })
     const [accountsRes, debtsRes, incomeCurRes, incomePrevRes, tradesCurRes, tradesPrevRes] =
       await Promise.all([
         supabase.from("trading_accounts").select("current_balance").eq("user_id", userId),
-        supabase.from("debts").select("total_owed, amount_repaid").eq("user_id", userId),
+        supabase.from("debts").select("original_amount, remaining_balance").eq("user_id", userId),
         supabase
           .from("income_entries")
           .select("amount")
@@ -54,30 +54,28 @@ export const getDashboardMetrics = createServerFn({ method: "GET" })
           .lt("entry_date", isoDate(startCurrent)),
         supabase
           .from("trades")
-          .select("pnl")
+          .select("profit_loss")
           .eq("user_id", userId)
-          .gte("trade_date", isoDate(startCurrent)),
+          .gte("entry_date", isoDate(startCurrent)),
         supabase
           .from("trades")
-          .select("pnl")
+          .select("profit_loss")
           .eq("user_id", userId)
-          .gte("trade_date", isoDate(startPrev))
-          .lt("trade_date", isoDate(startCurrent)),
+          .gte("entry_date", isoDate(startPrev))
+          .lt("entry_date", isoDate(startCurrent)),
       ]);
 
     const sum = (rows: Array<Record<string, number | null>> | null, key: string) =>
       (rows ?? []).reduce((acc, r) => acc + Number(r[key] ?? 0), 0);
 
     const accountBalance = sum(accountsRes.data as any, "current_balance");
-    const totalOwed = sum(debtsRes.data as any, "total_owed");
-    const totalRepaid = sum(debtsRes.data as any, "amount_repaid");
-    const totalDebt = Math.max(0, totalOwed - totalRepaid);
+    const totalDebt = sum(debtsRes.data as any, "remaining_balance");
     const netWorth = accountBalance - totalDebt;
 
     const monthlyIncome = sum(incomeCurRes.data as any, "amount");
     const monthlyIncomePrev = sum(incomePrevRes.data as any, "amount");
-    const tradingPnl = sum(tradesCurRes.data as any, "pnl");
-    const tradingPnlPrev = sum(tradesPrevRes.data as any, "pnl");
+    const tradingPnl = sum(tradesCurRes.data as any, "profit_loss");
+    const tradingPnlPrev = sum(tradesPrevRes.data as any, "profit_loss");
 
     // Net worth and debt deltas: we don't have historical snapshots — use trading pnl + income - debt payments in prev 30d as a proxy movement.
     // For an honest first pass, report 0% until snapshotting exists.
